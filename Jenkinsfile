@@ -6,18 +6,35 @@ podTemplate(label: label, containers: [
 {
     node(label) {
         container('maven') {
-            stage('Checkout') {
-                checkout scm
-            }
             ansiColor('xterm') {
-                // TODO Add persistentVolumeClaim to greatly speed this up
+                stage('Checkout') {
+                    notifyStarted()
+                    checkout scm
+                    googleStorageDownload bucketUri: 'gs://monplat-jenkins-artifacts/settings.xml', credentialsId: 'monplat-jenkins', localDirectory: './.mvn/'
+                }
                 stage('Maven install') {
-                  sh 'mvn install -Dmaven.test.skip=true'
+                  sh 'mvn install -Dmaven.test.skip=true -s .mvn/settings.xml'
                 }
                 stage('Integration Test') {
-                  sh 'mvn integration-test'
+                  // sh 'mvn integration-test'
+                  sh 'TZ=":America/Chicago" date'
+                }
+                stage('Deploy snapshot') {
+                  sh 'mvn deploy -Dmaven.test.skip=true -s .mvn/settings.xml'
                 }
             }
         }
     }
+}
+
+def notifyStarted() {
+    slackSend (color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) on branch: ${env.GIT_BRANCH}")
+}
+
+def notifySuccessful() {
+    slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) on branch: ${env.GIT_BRANCH}")
+}
+
+def notifyFailed() {
+    slackSend (color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) on branch: ${env.GIT_BRANCH}")
 }
