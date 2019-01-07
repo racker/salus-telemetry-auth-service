@@ -28,7 +28,8 @@ podTemplate(label: label, containers: [
             stage('Deploy docker') {
 				withCredentials([[$class: 'FileBinding', credentialsId: 'salus-dev-gcr', variable: 'GOOGLE_APPLICATION_CREDENTIALS']]) {
 					sh 'gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS'
-					sh 'gcloud components install docker-credential-gcr'
+					sh 'curl -fsSL "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v1.5.0/docker-credential-gcr_linux_amd64-1.5.0.tar.gz" | tar xz --to-stdout ./docker-credential-gcr > /usr/bin/docker-credential-gcr'
+					sh 'chmod +x /usr/bin/docker-credential-gcr'
 					sh 'docker-credential-gcr configure-docker'
 					sh './mvnw -P docker -Dmaven.deploy.skip=true -DskipLocalDockerBuild=true -Ddocker.image.prefix=gcr.io/salus-220516 -s .mvn/settings.xml deploy'
 				}
