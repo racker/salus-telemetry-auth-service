@@ -12,7 +12,7 @@ def notifyFailed() {
 }
 
 podTemplate(label: label, containers: [
-  containerTemplate(name: 'maven', image: 'maven:3-jdk-8', ttyEnabled: true, command: 'cat')
+  containerTemplate(name: 'maven', image: 'maven:3-jdk-8', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'gcloud', image: 'google/cloud-sdk', ttyEnabled: true, command: 'cat')
   ])
 {
