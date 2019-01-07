@@ -28,7 +28,7 @@ podTemplate(label: label, containers: [
 }
 
 def notifyStarted() {
-    slackSend (channel: '#mmi-ops', color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) on branch: ${env.GIT_BRANCH}")
+    slackSend (color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) on branch: ${env.GIT_BRANCH}")
 }
 
 def notifySuccessful() {
