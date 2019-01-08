@@ -1,14 +1,14 @@
 def label = "maven-${UUID.randomUUID().toString()}"
 
 podTemplate(label: label, containers: [
-  containerTemplate(name: 'maven', image: 'maven:3-jdk-8', ttyEnabled: true, command: 'cat')
+  containerTemplate(name: 'maven', image: 'maven:3-jdk-8', ttyEnabled: true, command: 'cat'),
+  containerTemplate(name: 'gcloud', image: 'google/cloud-sdk', ttyEnabled: true, command: 'cat')
   ])
 {
     node(label) {
         container('maven') {
             ansiColor('xterm') {
                 stage('Checkout') {
-                    notifyStarted()
                     checkout scm
                     googleStorageDownload bucketUri: 'gs://monplat-jenkins-artifacts/settings.xml', credentialsId: 'monplat-jenkins', localDirectory: './.mvn/'
                 }
@@ -24,17 +24,17 @@ podTemplate(label: label, containers: [
                 }
             }
         }
+        container('gcloud') {
+            stage('Deploy docker') {
+				withCredentials([[$class: 'FileBinding', credentialsId: 'salus-dev-gcr', variable: 'GOOGLE_APPLICATION_CREDENTIALS']]) {
+					sh 'gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS'
+					sh 'curl -fsSL "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v1.5.0/docker-credential-gcr_linux_amd64-1.5.0.tar.gz" | tar xz --to-stdout ./docker-credential-gcr > /usr/bin/docker-credential-gcr'
+					sh 'chmod +x /usr/bin/docker-credential-gcr'
+					sh 'docker-credential-gcr configure-docker'
+					sh './mvnw -P docker -Dmaven.test.skip=true -Dmaven.deploy.skip=true -DskipLocalDockerBuild=true -Ddocker.image.prefix=gcr.io/salus-220516 -s .mvn/settings.xml deploy'
+				}
+            }
+		}
     }
 }
 
-def notifyStarted() {
-    slackSend (color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) on branch: ${env.GIT_BRANCH}")
-}
-
-def notifySuccessful() {
-    slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) on branch: ${env.GIT_BRANCH}")
-}
-
-def notifyFailed() {
-    slackSend (color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) on branch: ${env.GIT_BRANCH}")
-}
