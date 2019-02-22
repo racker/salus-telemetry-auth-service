@@ -1,5 +1,6 @@
 substitutions:
   _GCS_CACHE_BUCKET: salus-cache
+  _SALUS_PROJECT: salus-telemetry-auth-service
 
 steps:
 
@@ -38,7 +39,7 @@ steps:
     - -c
     - |
       (
-        gsutil cp gs://${_GCS_CACHE_BUCKET}/m2-cache.tar.gz /tmp/m2-cache.tar.gz &&
+        gsutil cp gs://${_GCS_CACHE_BUCKET}/${_SALUS_PROJECT}-m2-cache.tar.gz /tmp/m2-cache.tar.gz &&
         tar -xzf /tmp/m2-cache.tar.gz
       ) || echo 'Cache not found'
     volumes:
@@ -84,7 +85,7 @@ steps:
     - |
       set -ex
       tar -czf /tmp/m2-cache.tar.gz .m2 &&
-      gsutil cp /tmp/m2-cache.tar.gz gs://${_GCS_CACHE_BUCKET}/m2-cache.tar.gz
+      gsutil cp /tmp/m2-cache.tar.gz gs://${_GCS_CACHE_BUCKET}/${_SALUS_PROJECT}-m2-cache.tar.gz
     volumes:
     - name: user.home
       path: /root
