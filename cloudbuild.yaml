@@ -45,14 +45,14 @@ steps:
     - name: user.home
       path: /root
 
-# - id: DEPLOY
-#   name: 'gcr.io/cloud-builders/mvn'
-#   args: ['deploy', '-s', '.mvn/settings.xml']
-#   volumes:
-#   - name: user.home
-#     path: /root
+  - id: DEPLOY
+    name: 'gcr.io/cloud-builders/mvn'
+    args: ['deploy', '-s', '.mvn/settings.xml']
+    volumes:
+    - name: user.home
+      path: /root
 
-  - id: COMPILE_N_DEPLOY
+  - id: COMPILE_AND_PUSH_CONTAINER
     name: 'gcr.io/cloud-builders/mvn'
     env:
     - 'SHORT_SHA=$SHORT_SHA'
@@ -74,7 +74,7 @@ steps:
   # Saves the files to the GCS cache.
   - id: PUSH_UP_CACHE
     waitFor:
-    - COMPILE_N_DEPLOY
+    - COMPILE_AND_PUSH_CONTAINER
     name: gcr.io/cloud-builders/gsutil
     dir: /root
     entrypoint: bash
