@@ -56,7 +56,7 @@ steps:
   # Saves the files to the GCS cache.
   - id: PUSH_UP_CACHE
     waitFor:
-    - COMPILE_AND_PUSH_CONTAINER
+    - DEPLOY
     name: gcr.io/cloud-builders/gsutil
     dir: /root
     entrypoint: bash
