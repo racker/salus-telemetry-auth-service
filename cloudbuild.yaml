@@ -4,25 +4,6 @@ substitutions:
 
 steps:
 
-    # This is ugly because of
-    # https://github.com/GoogleContainerTools/jib/issues/1500#issuecomment-466207421
-  - id: FIX_DOCKER
-    name: gcr.io/cloud-builders/mvn
-    waitFor: ['-']
-    dir: /root
-    entrypoint: bash
-    args:
-    - -c
-    - # Links the Docker config to /root/.docker/config.json so that Jib picks it up.
-      # Note that this is only a temporary workaround.
-      # See https://github.com/GoogleContainerTools/jib/pull/1479.
-      |
-      mkdir .docker &&
-      ln -vs $$HOME/.docker/config.json .docker/config.json
-    volumes:
-    - name: user.home
-      path: /root
-
   # Pull down settings file for Artifactory settings
   - id: GET_SETTINGS
     name: 'gcr.io/cloud-builders/gsutil'
