@@ -48,8 +48,6 @@ public class AuthController {
     }
 
     @GetMapping("cert")
-    // Note Confirm this is the correct role for this method:
-    @Secured({"ROLE_COMPUTE_DEFAULT"})
     public ResponseEntity<CertResponse> getCert(@RequestHeader("X-Tenant-Id") String tenant) {
         final VaultCertificateResponse resp = vaultTemplate.opsForPki()
                 .issueCertificate("telemetry-infra",

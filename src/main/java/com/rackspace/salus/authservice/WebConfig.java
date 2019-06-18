@@ -32,9 +32,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class WebConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        //http.addFilterBefore(new ReposeHeaderFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new ReposeHeaderFilter(), UsernamePasswordAuthenticationFilter.class);
 
-        http.antMatcher("/auth/bypass-all-auth")
+        http.antMatcher("/auth/**")
                 .authorizeRequests()
                 .anyRequest().authenticated();
     }

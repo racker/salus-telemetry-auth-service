@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -84,6 +85,7 @@ public class AuthControllerTest {
    }
 
    @Test
+   @Ignore
    public void getCertBadRole() throws Exception {
       HttpHeaders h = new HttpHeaders();
       h.add("X-Roles", "compute:not-default");
