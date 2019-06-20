@@ -16,12 +16,16 @@
  *
  */
 
-package com.rackspace.salus.authservice;
+package com.rackspace.salus.authservice.config;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+import org.springframework.vault.config.EnvironmentVaultConfiguration;
 
-import lombok.Data;
-@Data
-public class CertResponse {
-  final String certificate;
-  final String issuingCaCertificate;
-  final String privateKey;
-}
+@Configuration
+ @Import(EnvironmentVaultConfiguration.class)
+ // This is required to allow mocking of vault during test programs
+ @Profile("!test")
+ public class VaultConfig {
+ }
+  

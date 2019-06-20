@@ -16,16 +16,17 @@
  *
  */
 
-package com.rackspace.salus.authservice;
+package com.rackspace.salus.authservice.config;
+
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
-import org.springframework.vault.config.EnvironmentVaultConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 
 @Configuration
- @Import(EnvironmentVaultConfiguration.class)
- // This is required to allow mocking of vault during test programs
- @Profile("!test")
- public class VaultConfig {
- }
-  
+@EnableGlobalMethodSecurity(
+  prePostEnabled = true, 
+  securedEnabled = true, 
+  jsr250Enabled = true)
+public class MethodSecurityConfig 
+  extends GlobalMethodSecurityConfiguration {
+}

@@ -16,17 +16,22 @@
  *
  */
 
-package com.rackspace.salus.authservice;
+package com.rackspace.salus.authservice.config;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
-@Configuration
-@EnableGlobalMethodSecurity(
-  prePostEnabled = true, 
-  securedEnabled = true, 
-  jsr250Enabled = true)
-public class MethodSecurityConfig 
-  extends GlobalMethodSecurityConfiguration {
+@ConfigurationProperties("auth.service")
+@Component
+@Data
+public class AuthProperties {
+
+  /**
+   * The roles (without "ROLE_" prefix) that are required to allow the envoy to connect to the auth service.
+   * Identity roles are translated to this format via {@link com.rackspace.salus.common.web.PreAuthenticatedFilter}.
+   *
+   * COMPUTE_DEFAULT is what is used in tests.
+   */
+  String[] roles = new String[]{"COMPUTE_DEFAULT"};
 }
