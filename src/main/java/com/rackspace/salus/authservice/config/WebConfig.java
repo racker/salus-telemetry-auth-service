@@ -16,26 +16,41 @@
  *
  */
 
-package com.rackspace.salus.authservice;
+package com.rackspace.salus.authservice.config;
 
 import com.rackspace.salus.common.web.ReposeHeaderFilter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 /**
  * @author Geoff Bourne
  * @since Mar 2017
  */
 @Configuration
+@Slf4j
 public class WebConfig extends WebSecurityConfigurerAdapter {
+
+    private final AuthProperties authProperties;
+
+    public WebConfig(AuthProperties authProperties) {
+        this.authProperties = authProperties;
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.addFilterBefore(new ReposeHeaderFilter(), UsernamePasswordAuthenticationFilter.class);
+        log.debug("Configuring web security to authorize roles: {}", authProperties.getRoles());
+        http
+            .csrf().disable()
+            .addFilterBefore(
+                new ReposeHeaderFilter(),
+                BasicAuthenticationFilter.class
+            )
+            .authorizeRequests()
+            .antMatchers("/auth/**")
+            .hasAnyRole(authProperties.getRoles());
 
-        http.antMatcher("/auth/**")
-                .authorizeRequests()
-                .anyRequest().authenticated();
     }
 }

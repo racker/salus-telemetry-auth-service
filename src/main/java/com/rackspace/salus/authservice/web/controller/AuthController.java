@@ -16,8 +16,9 @@
  *
  */
 
-package com.rackspace.salus.authservice;
+package com.rackspace.salus.authservice.web.controller;
 
+import com.rackspace.salus.authservice.web.CertResponse;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
