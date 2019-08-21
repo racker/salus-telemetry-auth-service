@@ -7,16 +7,3 @@ vault:
     role-id: 5669e456-c0d8-9a49-8631-67b0df91741d
     secret-id: 1db6426a-5ece-f2be-1665-92f72672f420
 management.endpoints.web.exposure.include: "health,jolokia,metrics"
-management:
-  metrics:
-    export:
-      statsd:
-        flavor: ${statsd.flavor:telegraf}
-        host: ${statsd.host:localhost}
-        port: ${statsd.port:8125}
-        enabled: ${statsd.enabled:false}
-      influx:
-        db: telemetry-ambassador
-        host: ${statsd.host:localhost}
-        port: ${statsd.port:8086}
-        enabled: ${influx.enabled:false}
