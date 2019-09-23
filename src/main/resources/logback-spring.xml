@@ -34,6 +34,7 @@
   <root level="INFO">
     <springProfile name="production">
       <appender-ref ref="FLUENCY" />
+      <appender-ref ref="STDOUT"/>
     </springProfile>
     <springProfile name="!production">
       <appender-ref ref="STDOUT"/>
