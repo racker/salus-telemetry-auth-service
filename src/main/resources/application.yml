@@ -1,3 +1,4 @@
+
 management:
   metrics:
     export:
@@ -5,3 +6,6 @@ management:
         uri: ${salus.metrics.influx.uri:http://localhost:8086}
         db: salus
         enabled: ${salus.metrics.influx.enabled:false}
+spring:
+  application:
+    name: salus-telemetry-auth-service
