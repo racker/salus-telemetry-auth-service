@@ -9,3 +9,8 @@ management:
 spring:
   application:
     name: salus-telemetry-auth-service
+  cache:
+    cache-names: clientCerts
+    caffeine:
+      # Placeholders can be configured by env vars: CERTCACHE_MAXSIZE, CERTCACHE_TTL
+      spec: maximumSize=${cert-cache.max-size:500},expireAfterAccess=${cert-cache.ttl:600s}

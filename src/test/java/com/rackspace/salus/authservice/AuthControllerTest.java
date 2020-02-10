@@ -1,46 +1,41 @@
 /*
- *    Copyright 2018 Rackspace US, Inc.
+ * Copyright 2020 Rackspace US, Inc.
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- *
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.rackspace.salus.authservice;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.rackspace.salus.authservice.services.ClientCertificateService;
+import com.rackspace.salus.authservice.web.CertResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.vault.core.VaultPkiOperations;
-import org.springframework.vault.core.VaultTemplate;
-import org.springframework.vault.support.CertificateBundle;
-import org.springframework.vault.support.VaultCertificateResponse;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -51,23 +46,18 @@ public class AuthControllerTest {
    @Autowired
    private MockMvc mvc;
    @MockBean
-   VaultTemplate vt;
-   @Mock
-   VaultPkiOperations pki;
-   @Mock
-   VaultCertificateResponse cr;
-   @Mock
-   CertificateBundle cb;
+   ClientCertificateService clientCertificateService;
 
    @Test
    public void getCertSuccessful() throws Exception {
 
-      when(vt.opsForPki()).thenReturn(pki);
-      when(pki.issueCertificate(any(), any())).thenReturn(cr);
-      when(cr.getData()).thenReturn(cb);
-      when(cb.getCertificate()).thenReturn("cert");
-      when(cb.getIssuingCaCertificate()).thenReturn("ica");
-      when(cb.getPrivateKey()).thenReturn("key");
+      final CertResponse certResponse = new CertResponse(
+          "-----BEGIN CERTIFICATE-----\ncert\n-----END CERTIFICATE-----",
+          "-----BEGIN CERTIFICATE-----\nica\n-----END CERTIFICATE-----",
+          "-----BEGIN RSA PRIVATE KEY-----\nkey\n-----END RSA PRIVATE KEY-----"
+      );
+      when(clientCertificateService.getClientCertificate(any()))
+          .thenReturn(certResponse);
 
       HttpHeaders h = new HttpHeaders();
       h.add("X-Roles", "compute:default");
@@ -82,6 +72,8 @@ public class AuthControllerTest {
                        is("-----BEGIN CERTIFICATE-----\nica\n-----END CERTIFICATE-----")))
                    .andExpect(jsonPath("$.privateKey",
                        is("-----BEGIN RSA PRIVATE KEY-----\nkey\n-----END RSA PRIVATE KEY-----")));
+
+      verify(clientCertificateService).getClientCertificate("123456");
    }
 
    @Test
