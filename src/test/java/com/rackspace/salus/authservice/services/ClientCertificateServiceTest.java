@@ -42,6 +42,7 @@ import org.springframework.vault.support.VaultCertificateResponse;
 @RunWith(SpringRunner.class)
 @SpringBootTest(
     properties = {
+        // explicitly configure cache to hold more than the one tenant tested and no TTL
         "spring.cache.caffeine.spec=maximumSize=10",
         "salus.auth.service.pki-role-name=testing-role"
     }

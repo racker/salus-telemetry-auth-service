@@ -49,7 +49,7 @@ public class AuthController {
         final CertResponse rd = clientCertificateService.getClientCertificate(tenant);
 
         certCounter.increment();
-        log.info("Retrieving client certificates for tenant={}", tenant);
+        log.info("Providing client certificates for tenant={}", tenant);
         return ResponseEntity.ok(rd);
     }
 }

@@ -18,6 +18,7 @@ package com.rackspace.salus.authservice.services;
 
 import com.rackspace.salus.authservice.config.AuthProperties;
 import com.rackspace.salus.authservice.web.CertResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import org.springframework.vault.support.VaultCertificateRequest;
 import org.springframework.vault.support.VaultCertificateResponse;
 
 @Service
+@Slf4j
 public class ClientCertificateService {
 
   private final VaultTemplate vaultTemplate;
@@ -39,6 +41,8 @@ public class ClientCertificateService {
 
   @Cacheable("clientCerts")
   public CertResponse getClientCertificate(String tenant) {
+    log.info("Allocating client certificates for tenant={} from Vault", tenant);
+
     final VaultCertificateResponse resp = vaultTemplate.opsForPki()
         .issueCertificate(
             properties.getPkiRoleName(),
