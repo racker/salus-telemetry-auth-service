@@ -16,6 +16,7 @@
 
 package com.rackspace.salus.authservice;
 
+import com.rackspace.salus.common.config.AutoConfigureSalusAppMetrics;
 import com.rackspace.salus.common.util.DumpConfigProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,6 +24,7 @@ import org.springframework.cache.annotation.EnableCaching;
 
 @SpringBootApplication
 @EnableCaching
+@AutoConfigureSalusAppMetrics
 public class TelemetryAuthServiceApplication {
 
 	public static void main(String[] args) {
