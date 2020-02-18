@@ -50,7 +50,7 @@ public class WebConfig extends WebSecurityConfigurerAdapter {
             )
             .authorizeRequests()
             .antMatchers("/auth/**")
-            .hasAnyRole(authProperties.getRoles());
+            .hasAnyRole(authProperties.getRoles().toArray(new String[0]));
 
     }
 }

@@ -16,6 +16,7 @@
 
 package com.rackspace.salus.authservice.config;
 
+import java.util.List;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,7 @@ public class AuthProperties {
    *
    * COMPUTE_DEFAULT is what is used in tests.
    */
-  String[] roles = new String[]{"COMPUTE_DEFAULT"};
+  List<String> roles = List.of("COMPUTE_DEFAULT");
 
   /**
    * The Vault role name provided during PKI certificate issuing requests.
