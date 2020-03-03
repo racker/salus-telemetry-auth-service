@@ -61,7 +61,7 @@ public class AuthControllerTest {
 
       HttpHeaders h = new HttpHeaders();
       h.add("X-Roles", "compute:default");
-      h.add("X-Tenant-Id", "123456");
+      h.add("Requested-Tenant-Id", "123456");
       mvc.perform(
                get("/auth/cert")
                    .headers(h))
@@ -80,7 +80,7 @@ public class AuthControllerTest {
    public void getCertBadRole() throws Exception {
       HttpHeaders h = new HttpHeaders();
       h.add("X-Roles", "compute:not-default");
-      h.add("X-Tenant-Id", "123456");
+      h.add("Requested-Tenant-Id", "123456");
       mvc.perform(
               get("/auth/cert")
                   .headers(h))
