@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package com.rackspace.salus.authservice;
+package com.rackspace.salus.authservice.config;
 
-import com.rackspace.salus.common.config.AutoConfigureSalusAppMetrics;
-import com.rackspace.salus.common.util.DumpConfigProperties;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.convert.DurationUnit;
+import org.springframework.stereotype.Component;
 
-@SpringBootApplication
-@AutoConfigureSalusAppMetrics
-public class TelemetryAuthServiceApplication {
-
-	public static void main(String[] args) {
-		DumpConfigProperties.process(args);
-
-		SpringApplication.run(TelemetryAuthServiceApplication.class, args);
-	}
+@ConfigurationProperties("salus.auth.cache")
+@Component
+@Data
+public class CacheProperties {
+  int maxSize = 500;
+  @DurationUnit(ChronoUnit.SECONDS)
+  Duration ttl = Duration.ofSeconds(600);
 }
