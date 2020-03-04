@@ -16,6 +16,7 @@
 
 package com.rackspace.salus.authservice.config;
 
+import com.google.common.collect.Iterables;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.ExpiryPolicyBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
@@ -40,15 +41,20 @@ public class CacheConfig {
   @Bean
   public JCacheManagerCustomizer cacheCustomizer() {
     return cacheManager -> {
-      cacheManager.createCache(
-          "clientCerts",
-          Eh107Configuration.fromEhcacheCacheConfiguration(
-              CacheConfigurationBuilder.newCacheConfigurationBuilder(Object.class, Object.class,
-                  ResourcePoolsBuilder.heap(properties.getMaxSize())
-              )
-                  .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(properties.getTtl()))
-          )
-      );
+
+      // Unit testing causes cache customizer to be invoked more than once, so guard against duplicate cache exception
+      if (!Iterables.contains(cacheManager.getCacheNames(), "clientCerts")) {
+        cacheManager.createCache(
+            "clientCerts",
+            Eh107Configuration.fromEhcacheCacheConfiguration(
+                CacheConfigurationBuilder.newCacheConfigurationBuilder(Object.class, Object.class,
+                    ResourcePoolsBuilder.heap(properties.getMaxSize())
+                )
+                    .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(properties.getTtl()))
+            )
+        );
+      }
+
     };
   }
 }
