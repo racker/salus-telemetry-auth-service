@@ -63,6 +63,34 @@ public class AuthControllerTest {
       h.add("X-Roles", "compute:default");
       h.add("X-Tenant-Id", "123456");
       mvc.perform(
+               get("/v1.0/tenant/123456/auth/cert")
+                   .headers(h))
+                   .andExpect(status().is(200))
+                   .andExpect(jsonPath("$.certificate",
+                       is("-----BEGIN CERTIFICATE-----\ncert\n-----END CERTIFICATE-----")))
+                   .andExpect(jsonPath("$.issuingCaCertificate",
+                       is("-----BEGIN CERTIFICATE-----\nica\n-----END CERTIFICATE-----")))
+                   .andExpect(jsonPath("$.privateKey",
+                       is("-----BEGIN RSA PRIVATE KEY-----\nkey\n-----END RSA PRIVATE KEY-----")));
+
+      verify(clientCertificateService).getClientCertificate("123456");
+   }
+
+   @Test
+   public void getCertSuccessful_oldPath() throws Exception {
+
+      final CertResponse certResponse = new CertResponse(
+          "-----BEGIN CERTIFICATE-----\ncert\n-----END CERTIFICATE-----",
+          "-----BEGIN CERTIFICATE-----\nica\n-----END CERTIFICATE-----",
+          "-----BEGIN RSA PRIVATE KEY-----\nkey\n-----END RSA PRIVATE KEY-----"
+      );
+      when(clientCertificateService.getClientCertificate(any()))
+          .thenReturn(certResponse);
+
+      HttpHeaders h = new HttpHeaders();
+      h.add("X-Roles", "compute:default");
+      h.add("X-Tenant-Id", "123456");
+      mvc.perform(
                get("/auth/cert")
                    .headers(h))
                    .andExpect(status().is(200))
