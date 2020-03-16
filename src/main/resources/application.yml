@@ -1,4 +1,7 @@
-
+salus:
+  api:
+    auth:
+      version: "1.0"
 management:
   metrics:
     export:
