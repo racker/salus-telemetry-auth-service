@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -43,20 +42,14 @@ public class AuthController {
         certCounter = meterRegistry.counter("messages","certsAssigned", "stage");
     }
 
-    @GetMapping("/v${salus.api.auth.version}/tenant/{tenantId}/auth/cert")
-    public ResponseEntity<CertResponse> getCert(@PathVariable String tenantId) {
+    @GetMapping("/cert")
+    public ResponseEntity<CertResponse> getCertWithTenantFromAuth(
+        @AuthenticationPrincipal String tenantId
+    ) {
         final CertResponse rd = clientCertificateService.getClientCertificate(tenantId);
 
         certCounter.increment();
         log.info("Providing client certificates for tenant={}", tenantId);
         return ResponseEntity.ok(rd);
-    }
-
-    /**
-     * @deprecated retained temporarily to allow for Envoy migration to versioned, tenant-based path
-     */
-    @GetMapping("/auth/cert")
-    public ResponseEntity<CertResponse> getCertWithTenantFromAuth(@AuthenticationPrincipal String tenantId) {
-        return getCert(tenantId);
     }
 }
