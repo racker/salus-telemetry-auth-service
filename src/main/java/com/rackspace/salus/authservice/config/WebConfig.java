@@ -36,6 +36,8 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @Slf4j
 public class WebConfig extends WebSecurityConfigurerAdapter {
 
+    private static final String PROFILE_DEVTOKEN = "devtoken";
+
     private final TokenService tokenService;
     private final Environment environment;
 
@@ -49,7 +51,8 @@ public class WebConfig extends WebSecurityConfigurerAdapter {
         log.debug("Configuring web security");
 
         final Filter certAuthFilter;
-        if (environment.acceptsProfiles(Profiles.of("dev"))) {
+        // activate on a profile separate from "dev" to allow for testing real token workflow
+        if (environment.acceptsProfiles(Profiles.of(PROFILE_DEVTOKEN))) {
             log.warn("Using DevTokenAuthFilter to stub out cert retrieval authentication");
             certAuthFilter = new DevTokenAuthFilter();
         } else {
