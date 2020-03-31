@@ -20,8 +20,13 @@ import com.rackspace.salus.authservice.services.TokenService;
 import com.rackspace.salus.authservice.web.model.TokenAllocationRequest;
 import com.rackspace.salus.authservice.web.model.TokenModifyRequest;
 import com.rackspace.salus.telemetry.entities.EnvoyToken;
-import java.util.List;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.Authorization;
+import io.swagger.annotations.AuthorizationScope;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +43,14 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api")
+@Api(authorizations = {
+    @Authorization(value = "repose_auth",
+        scopes = {
+            @AuthorizationScope(scope = "write:envoy-token", description = "Can allocate envoy-tokens"),
+            @AuthorizationScope(scope = "read:envoy-token", description = "Can get and list envoy-tokens"),
+            @AuthorizationScope(scope = "delete:envoy-token", description = "Can delete an envoy-token")
+        })
+})
 public class EnvoyTokenController {
 
   private final TokenService tokenService;
@@ -49,23 +62,27 @@ public class EnvoyTokenController {
 
   @PostMapping("/tenant/{tenantId}/envoy-tokens")
   @ResponseStatus(HttpStatus.CREATED)
+  @ApiOperation("Allocate a token to be used by Envoys to retrieve client certificates")
   public EnvoyToken allocate(@PathVariable String tenantId,
                              @RequestBody TokenAllocationRequest request) {
     return tokenService.allocate(tenantId, request.getDescription());
   }
 
   @GetMapping("/tenant/{tenantId}/envoy-tokens")
-  public List<EnvoyToken> getAll(@PathVariable String tenantId) {
-    return tokenService.getAll(tenantId);
+  @ApiOperation("Get a page of currently allocated Envoy tokens")
+  public Page<EnvoyToken> getAll(@PathVariable String tenantId, Pageable page) {
+    return tokenService.getAll(tenantId, page);
   }
 
   @GetMapping("/tenant/{tenantId}/envoy-tokens/{token}")
+  @ApiOperation("Get a specific Envoy token")
   public EnvoyToken getOne(@PathVariable String tenantId,
                            @PathVariable String token) {
     return tokenService.getOne(tenantId, token);
   }
 
   @PutMapping("/tenant/{tenantId}/envoy-tokens/{token}")
+  @ApiOperation("Modify fields of a specific Envoy token")
   public EnvoyToken modify(@PathVariable String tenantId,
                            @PathVariable String token,
                            @RequestBody TokenModifyRequest request) {
@@ -74,6 +91,7 @@ public class EnvoyTokenController {
 
   @DeleteMapping("/tenant/{tenantId}/envoy-tokens/{token}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ApiOperation("Delete a specific Envoy token")
   public void delete(@PathVariable String tenantId,
                      @PathVariable String token) {
     tokenService.delete(tenantId, token);

@@ -66,9 +66,9 @@ public class WebConfig extends WebSecurityConfigurerAdapter {
                 BasicAuthenticationFilter.class
             )
             .authorizeRequests()
-            .antMatchers("/cert")
+            .antMatchers("/v*/cert")
             .hasAuthority(EnvoyTokenAuthFilter.ROLE_CERT_REQUESTOR)
-            // all other requests are inter-service calls
+            // all other requests are proxied via public API, which is already authenticated
             .anyRequest().permitAll();
     }
 }

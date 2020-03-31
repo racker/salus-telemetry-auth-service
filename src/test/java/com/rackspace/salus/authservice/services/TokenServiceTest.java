@@ -37,6 +37,9 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.co.jemos.podam.api.PodamFactory;
 import uk.co.jemos.podam.api.PodamFactoryImpl;
@@ -166,14 +169,14 @@ public class TokenServiceTest {
     )
         .collect(Collectors.toList());
 
-    when(envoyTokenRepository.findByTenantId(any()))
-        .thenReturn(tokens);
+    when(envoyTokenRepository.findByTenantId(any(), any()))
+        .thenReturn(new PageImpl<>(tokens));
 
-    final List<EnvoyToken> result = tokenService.getAll(tenantId);
+    final Page<EnvoyToken> result = tokenService.getAll(tenantId, PageRequest.of(0, 10));
 
-    assertThat(result).isEqualTo(tokens);
+    assertThat(result.getContent()).isEqualTo(tokens);
 
-    verify(envoyTokenRepository).findByTenantId(tenantId);
+    verify(envoyTokenRepository).findByTenantId(tenantId, PageRequest.of(0,10));
   }
 
   @Test
@@ -198,6 +201,8 @@ public class TokenServiceTest {
         .setDescription(newDescription)
         // should leave timestamps as-is
         .setCreatedTimestamp(envoyToken.getCreatedTimestamp())
+        // and ignore updatedTimestamp since mock isn't touching it
+        .setUpdatedTimestamp(envoyToken.getUpdatedTimestamp())
         .setLastUsed(envoyToken.getLastUsed());
 
     assertThat(result).isEqualTo(expected);

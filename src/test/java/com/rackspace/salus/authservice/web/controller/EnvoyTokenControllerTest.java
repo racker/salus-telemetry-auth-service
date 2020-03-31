@@ -39,6 +39,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -90,20 +92,22 @@ public class EnvoyTokenControllerTest {
     )
         .collect(Collectors.toList());
 
-    when(tokenService.getAll(any()))
-        .thenReturn(tokens);
+    when(tokenService.getAll(any(), any()))
+        .thenReturn(new PageImpl<>(tokens));
 
     mvc.perform(
-        get("/api/tenant/{tenantId}/envoy-tokens", tenantId)
+        get("/api/tenant/{tenantId}/envoy-tokens?size=10", tenantId)
             .accept(MediaType.APPLICATION_JSON)
     )
         .andExpect(status().isOk())
         // spot check some response content
-        .andExpect(jsonPath("$.length()").value(10))
-        .andExpect(jsonPath("$[0].tenantId").value(tenantId))
-        .andExpect(jsonPath("$[0].token").value(tokens.get(0).getToken()));
+        .andExpect(jsonPath("$.number").value(0))
+        .andExpect(jsonPath("$.size").value(10))
+        .andExpect(jsonPath("$.content.length()").value(10))
+        .andExpect(jsonPath("$.content[0].tenantId").value(tenantId))
+        .andExpect(jsonPath("$.content[0].token").value(tokens.get(0).getToken()));
 
-    verify(tokenService).getAll(tenantId);
+    verify(tokenService).getAll(tenantId, PageRequest.of(0, 10));
   }
 
   @Test

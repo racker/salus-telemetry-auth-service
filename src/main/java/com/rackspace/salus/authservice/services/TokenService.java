@@ -21,11 +21,12 @@ import com.rackspace.salus.telemetry.entities.EnvoyToken;
 import com.rackspace.salus.telemetry.model.NotFoundException;
 import com.rackspace.salus.telemetry.repositories.EnvoyTokenRepository;
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -76,8 +77,8 @@ public class TokenService {
         .orElseThrow(() -> new NotFoundException(MSG_NOT_FOUND));
   }
 
-  public List<EnvoyToken> getAll(String tenantId) {
-    return repository.findByTenantId(tenantId);
+  public Page<EnvoyToken> getAll(String tenantId, Pageable page) {
+    return repository.findByTenantId(tenantId, page);
   }
 
   public EnvoyToken modify(String tenantId, String tokenValue, String description) {

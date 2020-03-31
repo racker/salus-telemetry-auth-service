@@ -82,7 +82,7 @@ public class AuthControllerTest {
         .thenReturn(tenantId);
 
     mvc.perform(
-        get("/cert")
+        get("/v1.0/cert")
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenValue)
     )
         .andExpect(status().is(200))
@@ -108,7 +108,7 @@ public class AuthControllerTest {
   public void getCertSuccessful_missingAuth() throws Exception {
 
     mvc.perform(
-        get("/cert")
+        get("/v1.0/cert")
         // don't set headers
     )
         .andExpect(status().isForbidden());
@@ -119,7 +119,7 @@ public class AuthControllerTest {
   }
 
   @Test
-  public void getCertSuccessful_badToken() throws Exception {
+  public void getCertSuccessful_unknownToken() throws Exception {
 
     final String tokenValue = randomAlphanumeric(24);
 
@@ -127,12 +127,31 @@ public class AuthControllerTest {
         .thenReturn(null);
 
     mvc.perform(
-        get("/cert")
+        get("/v1.0/cert")
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenValue)
     )
-        .andExpect(status().isForbidden());
+        .andExpect(status().isUnauthorized());
 
     verify(tokenService).validate(tokenValue);
+
+    verify(clientCertificateService, never()).getClientCertificate(any());
+  }
+
+  @Test
+  public void getCertSuccessful_malformedToken() throws Exception {
+
+    final String tokenValue = randomAlphanumeric(24);
+
+    when(tokenService.validate(any()))
+        .thenReturn(null);
+
+    mvc.perform(
+        get("/v1.0/cert")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer") // and no token
+    )
+        .andExpect(status().isUnauthorized());
+
+    verify(tokenService, never()).validate(tokenValue);
 
     verify(clientCertificateService, never()).getClientCertificate(any());
   }

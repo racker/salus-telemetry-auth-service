@@ -20,6 +20,9 @@ import com.rackspace.salus.authservice.services.ClientCertificateService;
 import com.rackspace.salus.authservice.web.CertResponse;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.Authorization;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +32,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
+@Api(authorizations = {
+    @Authorization("bearer")
+})
 public class AuthController {
 
     private final ClientCertificateService clientCertificateService;
@@ -42,7 +48,8 @@ public class AuthController {
         certCounter = meterRegistry.counter("messages","certsAssigned", "stage");
     }
 
-    @GetMapping("/cert")
+    @GetMapping("/v${salus.api.auth.version}/cert")
+    @ApiOperation("Requests client certificate material for the gRPC connection with Ambassador")
     public ResponseEntity<CertResponse> getCertWithTenantFromAuth(
         @AuthenticationPrincipal String tenantId
     ) {
