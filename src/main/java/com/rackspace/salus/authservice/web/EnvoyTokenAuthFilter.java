@@ -76,7 +76,7 @@ public class EnvoyTokenAuthFilter extends OncePerRequestFilter {
     try {
       tokenValue = extractToken(request);
     } catch (AuthenticationException e) {
-      failureHandler.onAuthenticationFailure(request, response, e);
+      handleAuthenticationFailure(request, response, e);
       return;
     }
 
@@ -86,11 +86,12 @@ public class EnvoyTokenAuthFilter extends OncePerRequestFilter {
 
       if (tenantId == null) {
         SecurityContextHolder.clearContext();
-        failureHandler.onAuthenticationFailure(request, response,
-            new BadCredentialsException("Invalid Envoy token"));
+        handleAuthenticationFailure(
+            request, response, new BadCredentialsException("Invalid Envoy token"));
         return;
       }
       else {
+        log.debug("Authenticated tenant={}", tenantId);
         final SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(new PreAuthenticatedAuthenticationToken(
           tenantId, "", AUTHORITIES
@@ -100,6 +101,13 @@ public class EnvoyTokenAuthFilter extends OncePerRequestFilter {
     }
 
     filterChain.doFilter(request, response);
+  }
+
+  private void handleAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+                                           AuthenticationException e)
+      throws IOException, ServletException {
+    log.debug("Failed to authenticate request from remoteAddr={}", request.getRemoteAddr());
+    failureHandler.onAuthenticationFailure(request, response, e);
   }
 
   private String extractToken(HttpServletRequest request) {
