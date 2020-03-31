@@ -17,9 +17,13 @@
 package com.rackspace.salus.authservice.config;
 
 import com.rackspace.salus.authservice.services.TokenService;
+import com.rackspace.salus.authservice.web.DevTokenAuthFilter;
 import com.rackspace.salus.authservice.web.EnvoyTokenAuthFilter;
+import javax.servlet.Filter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -33,19 +37,29 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 public class WebConfig extends WebSecurityConfigurerAdapter {
 
     private final TokenService tokenService;
+    private final Environment environment;
 
-    public WebConfig(TokenService tokenService) {
+    public WebConfig(TokenService tokenService, Environment environment) {
         this.tokenService = tokenService;
+        this.environment = environment;
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         log.debug("Configuring web security");
 
+        final Filter certAuthFilter;
+        if (environment.acceptsProfiles(Profiles.of("dev"))) {
+            log.warn("Using DevTokenAuthFilter to stub out cert retrieval authentication");
+            certAuthFilter = new DevTokenAuthFilter();
+        } else {
+            certAuthFilter = new EnvoyTokenAuthFilter(tokenService);
+        }
+
         http
             .csrf().disable()
             .addFilterBefore(
-                new EnvoyTokenAuthFilter(tokenService),
+                certAuthFilter,
                 BasicAuthenticationFilter.class
             )
             .authorizeRequests()

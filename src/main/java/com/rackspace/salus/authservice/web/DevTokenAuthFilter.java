@@ -16,37 +16,23 @@
 
 package com.rackspace.salus.authservice.web;
 
-import com.rackspace.salus.authservice.services.TokenService;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-public class EnvoyTokenAuthFilter extends OncePerRequestFilter {
-
-  public static final String ROLE_CERT_REQUESTOR = "CERT_REQUESTOR";
-
-  public static final GrantedAuthority CERT_REQUESTOR =
-      new SimpleGrantedAuthority(ROLE_CERT_REQUESTOR);
-
-  static final Collection<? extends GrantedAuthority> AUTHORITIES = List.of(CERT_REQUESTOR);
-
-  private final TokenService tokenService;
-
-  public EnvoyTokenAuthFilter(TokenService tokenService) {
-    this.tokenService = tokenService;
-  }
+/**
+ * Stub replacement for {@link DevTokenAuthFilter} that simply uses the bearer token value
+ * as the literal tenant ID.
+ */
+public class DevTokenAuthFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(HttpServletRequest request,
@@ -55,20 +41,13 @@ public class EnvoyTokenAuthFilter extends OncePerRequestFilter {
 
     final String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
     if (StringUtils.startsWithIgnoreCase(authorization, "bearer ")) {
-      final String tokenValue = authorization.substring(7);
+      final String tenantId = authorization.substring(7);
 
-      final String tenantId = tokenService.validate(tokenValue);
-
-      if (tenantId == null) {
-        SecurityContextHolder.clearContext();
-      }
-      else {
-        final SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(new PreAuthenticatedAuthenticationToken(
-          tenantId, "", AUTHORITIES
-        ));
-        SecurityContextHolder.setContext(context);
-      }
+      final SecurityContext context = SecurityContextHolder.createEmptyContext();
+      context.setAuthentication(new PreAuthenticatedAuthenticationToken(
+          tenantId, "", EnvoyTokenAuthFilter.AUTHORITIES
+      ));
+      SecurityContextHolder.setContext(context);
     }
 
     filterChain.doFilter(request, response);
