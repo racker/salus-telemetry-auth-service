@@ -17,6 +17,7 @@
 package com.rackspace.salus.authservice.services;
 
 import com.rackspace.salus.authservice.config.AuthProperties;
+import com.rackspace.salus.authservice.config.CacheConfig;
 import com.rackspace.salus.authservice.web.CertResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class ClientCertificateService {
     this.properties = properties;
   }
 
-  @Cacheable("clientCerts")
+  @Cacheable(CacheConfig.CLIENT_CERTS)
   public CertResponse getClientCertificate(String tenant) {
     log.info("Allocating client certificates for tenant={} from Vault", tenant);
 

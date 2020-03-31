@@ -27,7 +27,17 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 public class CacheProperties {
-  int maxSize = 500;
-  @DurationUnit(ChronoUnit.SECONDS)
-  Duration ttl = Duration.ofSeconds(600);
+
+  SizeAndTtl certs =
+      new SizeAndTtl();
+
+  SizeAndTtl tokenValidation =
+      new SizeAndTtl().setTtl(Duration.ofSeconds(60));
+
+  @Data
+  public static class SizeAndTtl {
+    int maxSize = 500;
+    @DurationUnit(ChronoUnit.SECONDS)
+    Duration ttl = Duration.ofSeconds(600);
+  }
 }

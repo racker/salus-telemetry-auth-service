@@ -54,7 +54,7 @@ public class TokenServiceTest {
   @Autowired
   TokenService tokenService;
 
-  private PodamFactory podamFactory = new PodamFactoryImpl();
+  private final PodamFactory podamFactory = new PodamFactoryImpl();
 
   @Test
   public void testAllocate() {

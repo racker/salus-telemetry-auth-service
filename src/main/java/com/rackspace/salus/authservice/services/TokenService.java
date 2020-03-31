@@ -16,6 +16,7 @@
 
 package com.rackspace.salus.authservice.services;
 
+import com.rackspace.salus.authservice.config.CacheConfig;
 import com.rackspace.salus.telemetry.entities.EnvoyToken;
 import com.rackspace.salus.telemetry.model.NotFoundException;
 import com.rackspace.salus.telemetry.repositories.EnvoyTokenRepository;
@@ -23,6 +24,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -49,10 +52,10 @@ public class TokenService {
   }
 
   /**
-   *
    * @param tokenValue the tokenValue value to validate
    * @return the tenantId of the validated token or null if given token value is not valid
    */
+  @Cacheable(CacheConfig.TOKEN_VALIDATION)
   public String validate(String tokenValue) {
     final Optional<EnvoyToken> token = repository.findByToken(tokenValue);
     if (token.isEmpty()) {
@@ -87,6 +90,8 @@ public class TokenService {
     return repository.save(token);
   }
 
+  @CacheEvict(cacheNames = CacheConfig.TOKEN_VALIDATION,
+      key = "#tokenValue")
   public void delete(String tenantId, String tokenValue) {
     final EnvoyToken token = repository
         .findByTenantIdAndToken(tenantId, tokenValue)
