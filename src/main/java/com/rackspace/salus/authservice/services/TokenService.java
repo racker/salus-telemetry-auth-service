@@ -81,7 +81,7 @@ public class TokenService {
     return repository.findByTenantId(tenantId, page);
   }
 
-  public EnvoyToken modify(String tenantId, String tokenValue, String description) {
+  public EnvoyToken update(String tenantId, String tokenValue, String description) {
     final EnvoyToken token = repository
         .findByTenantIdAndToken(tenantId, tokenValue)
         .orElseThrow(() -> new NotFoundException(MSG_NOT_FOUND));

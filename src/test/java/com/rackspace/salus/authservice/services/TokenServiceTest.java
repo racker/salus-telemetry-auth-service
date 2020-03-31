@@ -180,7 +180,7 @@ public class TokenServiceTest {
   }
 
   @Test
-  public void testModify_exists() {
+  public void testUpdate_exists() {
     final EnvoyToken envoyToken = podamFactory.manufacturePojo(EnvoyToken.class);
     final String tenantId = envoyToken.getTenantId();
     final String newDescription = randomAlphanumeric(50);
@@ -192,7 +192,7 @@ public class TokenServiceTest {
     when(envoyTokenRepository.findByTenantIdAndToken(any(), any()))
         .thenReturn(Optional.of(envoyToken));
 
-    final EnvoyToken result = tokenService.modify(tenantId, envoyToken.getToken(), newDescription);
+    final EnvoyToken result = tokenService.update(tenantId, envoyToken.getToken(), newDescription);
 
     final EnvoyToken expected = new EnvoyToken()
         .setTenantId(tenantId)
@@ -213,7 +213,7 @@ public class TokenServiceTest {
   }
 
   @Test
-  public void testModify_absent() {
+  public void testUpdate_absent() {
     final String tenantId = randomAlphanumeric(10);
     final String tokenValue = randomAlphanumeric(24);
 
@@ -221,7 +221,7 @@ public class TokenServiceTest {
         .thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> {
-      tokenService.modify(tenantId, tokenValue, "won't be used");
+      tokenService.update(tenantId, tokenValue, "won't be used");
     }).isInstanceOf(NotFoundException.class);
 
     verify(envoyTokenRepository).findByTenantIdAndToken(tenantId, tokenValue);

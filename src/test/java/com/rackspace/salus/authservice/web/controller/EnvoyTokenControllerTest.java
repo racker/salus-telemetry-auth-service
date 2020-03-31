@@ -129,10 +129,10 @@ public class EnvoyTokenControllerTest {
   }
 
   @Test
-  public void testModify() throws Exception {
+  public void testUpdate() throws Exception {
     final EnvoyToken token = podamFactory.manufacturePojo(EnvoyToken.class);
 
-    when(tokenService.modify(any(), any(), any()))
+    when(tokenService.update(any(), any(), any()))
         .thenReturn(token);
 
     final Map<String, String> request = Map.of("description", token.getDescription());
@@ -148,7 +148,7 @@ public class EnvoyTokenControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.description").value(token.getDescription()));
 
-    verify(tokenService).modify(
+    verify(tokenService).update(
         token.getTenantId(), token.getToken(), token.getDescription()
     );
   }

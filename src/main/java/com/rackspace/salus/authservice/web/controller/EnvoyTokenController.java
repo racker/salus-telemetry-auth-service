@@ -82,11 +82,11 @@ public class EnvoyTokenController {
   }
 
   @PutMapping("/tenant/{tenantId}/envoy-tokens/{token}")
-  @ApiOperation("Modify fields of a specific Envoy token")
-  public EnvoyToken modify(@PathVariable String tenantId,
+  @ApiOperation("Update fields of a specific Envoy token")
+  public EnvoyToken update(@PathVariable String tenantId,
                            @PathVariable String token,
                            @RequestBody TokenModifyRequest request) {
-    return tokenService.modify(tenantId, token, request.getDescription());
+    return tokenService.update(tenantId, token, request.getDescription());
   }
 
   @DeleteMapping("/tenant/{tenantId}/envoy-tokens/{token}")
