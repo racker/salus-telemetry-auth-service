@@ -55,7 +55,7 @@ import uk.co.jemos.podam.api.PodamFactoryImpl;
 })
 // Ensure CacheManager is available
 @EnableCaching
-// ...but using no-cop cache
+// ...but using no-op cache
 @AutoConfigureCache(cacheProvider = CacheType.NONE)
 public class TokenServiceTest {
 
