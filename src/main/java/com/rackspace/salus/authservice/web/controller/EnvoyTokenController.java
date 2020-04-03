@@ -24,6 +24,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
 import io.swagger.annotations.AuthorizationScope;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -74,26 +75,26 @@ public class EnvoyTokenController {
     return tokenService.getAll(tenantId, page);
   }
 
-  @GetMapping("/tenant/{tenantId}/envoy-tokens/{token}")
+  @GetMapping("/tenant/{tenantId}/envoy-tokens/{id}")
   @ApiOperation("Get a specific Envoy token")
   public EnvoyToken getOne(@PathVariable String tenantId,
-                           @PathVariable String token) {
-    return tokenService.getOne(tenantId, token);
+                           @PathVariable UUID id) {
+    return tokenService.getOne(tenantId, id);
   }
 
-  @PutMapping("/tenant/{tenantId}/envoy-tokens/{token}")
+  @PutMapping("/tenant/{tenantId}/envoy-tokens/{id}")
   @ApiOperation("Update fields of a specific Envoy token")
   public EnvoyToken update(@PathVariable String tenantId,
-                           @PathVariable String token,
+                           @PathVariable UUID id,
                            @RequestBody TokenModifyRequest request) {
-    return tokenService.update(tenantId, token, request.getDescription());
+    return tokenService.update(tenantId, id, request.getDescription());
   }
 
-  @DeleteMapping("/tenant/{tenantId}/envoy-tokens/{token}")
+  @DeleteMapping("/tenant/{tenantId}/envoy-tokens/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @ApiOperation("Delete a specific Envoy token")
   public void delete(@PathVariable String tenantId,
-                     @PathVariable String token) {
-    tokenService.delete(tenantId, token);
+                     @PathVariable UUID id) {
+    tokenService.delete(tenantId, id);
   }
 }

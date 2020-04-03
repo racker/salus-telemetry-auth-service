@@ -32,6 +32,7 @@ import com.rackspace.salus.authservice.services.TokenService;
 import com.rackspace.salus.telemetry.entities.EnvoyToken;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.Test;
@@ -105,6 +106,7 @@ public class EnvoyTokenControllerTest {
         .andExpect(jsonPath("$.size").value(10))
         .andExpect(jsonPath("$.content.length()").value(10))
         .andExpect(jsonPath("$.content[0].tenantId").value(tenantId))
+        .andExpect(jsonPath("$.content[0].id").value(tokens.get(0).getId().toString()))
         .andExpect(jsonPath("$.content[0].token").value(tokens.get(0).getToken()));
 
     verify(tokenService).getAll(tenantId, PageRequest.of(0, 10));
@@ -118,14 +120,14 @@ public class EnvoyTokenControllerTest {
         .thenReturn(token);
 
     mvc.perform(
-        get("/api/tenant/{tenantId}/envoy-tokens/{token}",
-            token.getTenantId(), token.getToken())
+        get("/api/tenant/{tenantId}/envoy-tokens/{id}",
+            token.getTenantId(), token.getId())
         .accept(MediaType.APPLICATION_JSON)
     )
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.token").value(token.getToken()));
 
-    verify(tokenService).getOne(token.getTenantId(), token.getToken());
+    verify(tokenService).getOne(token.getTenantId(), token.getId());
   }
 
   @Test
@@ -138,8 +140,8 @@ public class EnvoyTokenControllerTest {
     final Map<String, String> request = Map.of("description", token.getDescription());
 
     mvc.perform(
-        put("/api/tenant/{tenantId}/envoy-tokens/{token}",
-            token.getTenantId(), token.getToken()
+        put("/api/tenant/{tenantId}/envoy-tokens/{id}",
+            token.getTenantId(), token.getId()
         )
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request))
@@ -149,20 +151,20 @@ public class EnvoyTokenControllerTest {
         .andExpect(jsonPath("$.description").value(token.getDescription()));
 
     verify(tokenService).update(
-        token.getTenantId(), token.getToken(), token.getDescription()
+        token.getTenantId(), token.getId(), token.getDescription()
     );
   }
 
   @Test
   public void testDelete() throws Exception {
     final String tenantId = randomAlphanumeric(10);
-    final String tokenValue = randomAlphanumeric(24);
+    final UUID tokenId = UUID.randomUUID();
 
     mvc.perform(
-        delete("/api/tenant/{tenantId}/envoy-tokens/{token}", tenantId, tokenValue)
+        delete("/api/tenant/{tenantId}/envoy-tokens/{id}", tenantId, tokenId)
     )
         .andExpect(status().isNoContent());
 
-    verify(tokenService).delete(tenantId, tokenValue);
+    verify(tokenService).delete(tenantId, tokenId);
   }
 }

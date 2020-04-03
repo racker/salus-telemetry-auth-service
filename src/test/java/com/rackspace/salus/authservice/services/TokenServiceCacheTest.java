@@ -41,6 +41,7 @@ import uk.co.jemos.podam.api.PodamFactoryImpl;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {
+    // for real jcache initialization
     CacheConfig.class,
     TokenService.class,
 })
@@ -88,7 +89,7 @@ public class TokenServiceCacheTest {
         .thenReturn(Optional.empty());
 
     // used during delete
-    when(envoyTokenRepository.findByTenantIdAndToken(any(), any()))
+    when(envoyTokenRepository.findByIdAndTenantId(any(), any()))
         .thenReturn(Optional.of(token));
 
     final String tenantId = tokenService.validate(token.getToken());
@@ -98,7 +99,7 @@ public class TokenServiceCacheTest {
     final String cachedTenantId = tokenService.validate(token.getToken());
     assertThat(cachedTenantId).isEqualTo(token.getTenantId());
 
-    tokenService.delete(token.getTenantId(), token.getToken());
+    tokenService.delete(token.getTenantId(), token.getId());
 
     final String postDeleteResult = tokenService.validate(token.getToken());
     assertThat(postDeleteResult).isNull();

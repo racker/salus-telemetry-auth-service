@@ -30,13 +30,17 @@ import com.rackspace.salus.telemetry.model.NotFoundException;
 import com.rackspace.salus.telemetry.repositories.EnvoyTokenRepository;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.cache.CacheType;
+import org.springframework.boot.test.autoconfigure.core.AutoConfigureCache;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -46,6 +50,10 @@ import uk.co.jemos.podam.api.PodamFactoryImpl;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = TokenService.class)
+// Ensure CacheManager is available
+@EnableCaching
+// ...but using no-cop cache
+@AutoConfigureCache(cacheProvider = CacheType.NONE)
 public class TokenServiceTest {
 
   @MockBean
@@ -132,31 +140,32 @@ public class TokenServiceTest {
   public void testGetOne_exists() {
     final EnvoyToken envoyToken = podamFactory.manufacturePojo(EnvoyToken.class);
 
-    when(envoyTokenRepository.findByTenantIdAndToken(any(), any()))
+    when(envoyTokenRepository.findByIdAndTenantId(any(), any()))
         .thenReturn(Optional.of(envoyToken));
 
-    final EnvoyToken result = tokenService.getOne(envoyToken.getTenantId(), envoyToken.getToken());
+    final EnvoyToken result = tokenService.getOne(
+        envoyToken.getTenantId(), envoyToken.getId());
 
     assertThat(result).isSameAs(envoyToken);
 
     verify(envoyTokenRepository)
-        .findByTenantIdAndToken(envoyToken.getTenantId(), envoyToken.getToken());
+        .findByIdAndTenantId(envoyToken.getId(), envoyToken.getTenantId());
   }
 
   @Test
   public void testGetOne_absent() {
     final String tenantId = randomAlphanumeric(10);
-    final String tokenValue = randomAlphanumeric(24);
+    final UUID tokenId = UUID.randomUUID();
 
-    when(envoyTokenRepository.findByTenantIdAndToken(any(), any()))
+    when(envoyTokenRepository.findByIdAndTenantId(any(), any()))
         .thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> {
-      tokenService.getOne(tenantId, tokenValue);
+      tokenService.getOne(tenantId, tokenId);
     }).isInstanceOf(NotFoundException.class);
 
     verify(envoyTokenRepository)
-        .findByTenantIdAndToken(tenantId, tokenValue);
+        .findByIdAndTenantId(tokenId, tenantId);
   }
 
   @Test
@@ -189,12 +198,13 @@ public class TokenServiceTest {
         // return the given entity
         .then(invocationOnMock -> invocationOnMock.getArgument(0));
 
-    when(envoyTokenRepository.findByTenantIdAndToken(any(), any()))
+    when(envoyTokenRepository.findByIdAndTenantId(any(), any()))
         .thenReturn(Optional.of(envoyToken));
 
-    final EnvoyToken result = tokenService.update(tenantId, envoyToken.getToken(), newDescription);
+    final EnvoyToken result = tokenService.update(tenantId, envoyToken.getId(), newDescription);
 
     final EnvoyToken expected = new EnvoyToken()
+        .setId(envoyToken.getId())
         .setTenantId(tenantId)
         .setToken(envoyToken.getToken())
         // should change description
@@ -207,7 +217,7 @@ public class TokenServiceTest {
 
     assertThat(result).isEqualTo(expected);
 
-    verify(envoyTokenRepository).findByTenantIdAndToken(tenantId, envoyToken.getToken());
+    verify(envoyTokenRepository).findByIdAndTenantId(envoyToken.getId(), tenantId);
 
     verify(envoyTokenRepository).save(expected);
   }
@@ -215,16 +225,16 @@ public class TokenServiceTest {
   @Test
   public void testUpdate_absent() {
     final String tenantId = randomAlphanumeric(10);
-    final String tokenValue = randomAlphanumeric(24);
+    final UUID tokenId = UUID.randomUUID();
 
-    when(envoyTokenRepository.findByTenantIdAndToken(any(), any()))
+    when(envoyTokenRepository.findByIdAndTenantId(any(), any()))
         .thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> {
-      tokenService.update(tenantId, tokenValue, "won't be used");
+      tokenService.update(tenantId, tokenId, "won't be used");
     }).isInstanceOf(NotFoundException.class);
 
-    verify(envoyTokenRepository).findByTenantIdAndToken(tenantId, tokenValue);
+    verify(envoyTokenRepository).findByIdAndTenantId(tokenId, tenantId);
     verify(envoyTokenRepository, never()).save(any());
   }
 
@@ -232,13 +242,13 @@ public class TokenServiceTest {
   public void testDelete_exists() {
     final EnvoyToken envoyToken = podamFactory.manufacturePojo(EnvoyToken.class);
 
-    when(envoyTokenRepository.findByTenantIdAndToken(any(), any()))
+    when(envoyTokenRepository.findByIdAndTenantId(any(), any()))
         .thenReturn(Optional.of(envoyToken));
 
-    tokenService.delete(envoyToken.getTenantId(), envoyToken.getToken());
+    tokenService.delete(envoyToken.getTenantId(), envoyToken.getId());
 
     verify(envoyTokenRepository)
-        .findByTenantIdAndToken(envoyToken.getTenantId(), envoyToken.getToken());
+        .findByIdAndTenantId(envoyToken.getId(), envoyToken.getTenantId());
 
     verify(envoyTokenRepository).delete(envoyToken);
   }
@@ -246,16 +256,16 @@ public class TokenServiceTest {
   @Test
   public void testDelete_absent() {
     final String tenantId = randomAlphanumeric(10);
-    final String tokenValue = randomAlphanumeric(24);
+    final UUID tokenId = UUID.randomUUID();
 
-    when(envoyTokenRepository.findByTenantIdAndToken(any(), any()))
+    when(envoyTokenRepository.findByIdAndTenantId(any(), any()))
         .thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> {
-      tokenService.delete(tenantId, tokenValue);
+      tokenService.delete(tenantId, tokenId);
     }).isInstanceOf(NotFoundException.class);
 
-    verify(envoyTokenRepository).findByTenantIdAndToken(tenantId, tokenValue);
+    verify(envoyTokenRepository).findByIdAndTenantId(tokenId, tenantId);
     verify(envoyTokenRepository, never()).delete(any());
   }
 }

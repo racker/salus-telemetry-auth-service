@@ -22,12 +22,15 @@ import com.rackspace.salus.telemetry.model.NotFoundException;
 import com.rackspace.salus.telemetry.repositories.EnvoyTokenRepository;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
 public class TokenService {
@@ -36,9 +39,13 @@ public class TokenService {
 
   private final EnvoyTokenRepository repository;
   private final TokenGenerator tokenGenerator;
+  private final Cache tokenCache;
 
   @Autowired
-  public TokenService(EnvoyTokenRepository repository, TokenGenerator tokenGenerator) {
+  public TokenService(CacheManager cacheManager,
+                      EnvoyTokenRepository repository, TokenGenerator tokenGenerator) {
+    this.tokenCache = cacheManager.getCache(CacheConfig.TOKEN_VALIDATION);
+    Assert.state(tokenCache!=null, "Unable to locate token validation cache");
     this.repository = repository;
     this.tokenGenerator = tokenGenerator;
   }
@@ -69,9 +76,9 @@ public class TokenService {
     return token.get().getTenantId();
   }
 
-  public EnvoyToken getOne(String tenantId, String tokenValue) {
+  public EnvoyToken getOne(String tenantId, UUID tokenId) {
     final Optional<EnvoyToken> token = repository
-        .findByTenantIdAndToken(tenantId, tokenValue);
+        .findByIdAndTenantId(tokenId, tenantId);
 
     return token
         .orElseThrow(() -> new NotFoundException(MSG_NOT_FOUND));
@@ -81,9 +88,9 @@ public class TokenService {
     return repository.findByTenantId(tenantId, page);
   }
 
-  public EnvoyToken update(String tenantId, String tokenValue, String description) {
+  public EnvoyToken update(String tenantId, UUID tokenId, String description) {
     final EnvoyToken token = repository
-        .findByTenantIdAndToken(tenantId, tokenValue)
+        .findByIdAndTenantId(tokenId, tenantId)
         .orElseThrow(() -> new NotFoundException(MSG_NOT_FOUND));
 
     token.setDescription(description);
@@ -91,12 +98,14 @@ public class TokenService {
     return repository.save(token);
   }
 
-  @CacheEvict(cacheNames = CacheConfig.TOKEN_VALIDATION,
-      key = "#tokenValue")
-  public void delete(String tenantId, String tokenValue) {
+  public void delete(String tenantId, UUID tokenId) {
     final EnvoyToken token = repository
-        .findByTenantIdAndToken(tenantId, tokenValue)
+        .findByIdAndTenantId(tokenId, tenantId)
         .orElseThrow(() -> new NotFoundException(MSG_NOT_FOUND));
+
+    // Unable to use declarative cache eviction since the cache key is not available
+    // until after retrieval of the EnvoyToken
+    tokenCache.evict(token.getToken());
 
     repository.delete(token);
   }
