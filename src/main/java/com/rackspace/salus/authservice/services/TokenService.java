@@ -20,6 +20,8 @@ import com.rackspace.salus.authservice.config.CacheConfig;
 import com.rackspace.salus.telemetry.entities.EnvoyToken;
 import com.rackspace.salus.telemetry.model.NotFoundException;
 import com.rackspace.salus.telemetry.repositories.EnvoyTokenRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,14 +42,19 @@ public class TokenService {
   private final EnvoyTokenRepository repository;
   private final TokenGenerator tokenGenerator;
   private final Cache tokenCache;
+  private final Counter validTokenValidations;
+  private final Counter invalidTokenValidations;
 
   @Autowired
-  public TokenService(CacheManager cacheManager,
+  public TokenService(CacheManager cacheManager, MeterRegistry meterRegistry,
                       EnvoyTokenRepository repository, TokenGenerator tokenGenerator) {
     this.tokenCache = cacheManager.getCache(CacheConfig.TOKEN_VALIDATION);
     Assert.state(tokenCache!=null, "Unable to locate token validation cache");
     this.repository = repository;
     this.tokenGenerator = tokenGenerator;
+
+    validTokenValidations = meterRegistry.counter("tokenValidations", "result", "valid");
+    invalidTokenValidations = meterRegistry.counter("tokenValidations", "result", "invalid");
   }
 
   public EnvoyToken allocate(String tenantId, String description) {
@@ -63,12 +70,16 @@ public class TokenService {
    * @param tokenValue the tokenValue value to validate
    * @return the tenantId of the validated token or null if given token value is not valid
    */
-  @Cacheable(CacheConfig.TOKEN_VALIDATION)
+  @Cacheable(cacheNames = CacheConfig.TOKEN_VALIDATION,
+      // avoid cache bloat from a brute force attack
+      unless = "#result == null")
   public String validate(String tokenValue) {
     final Optional<EnvoyToken> token = repository.findByToken(tokenValue);
     if (token.isEmpty()) {
+      invalidTokenValidations.increment();
       return null;
     }
+    validTokenValidations.increment();
 
     token.get().setLastUsed(Instant.now());
     repository.save(token.get());

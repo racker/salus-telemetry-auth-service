@@ -16,6 +16,7 @@
 
 package com.rackspace.salus.authservice.services;
 
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -43,6 +44,7 @@ import uk.co.jemos.podam.api.PodamFactoryImpl;
 @SpringBootTest(classes = {
     // for real jcache initialization
     CacheConfig.class,
+    MeterRegistryConfig.class,
     TokenService.class,
 })
 @AutoConfigureCache(cacheProvider = CacheType.JCACHE)
@@ -76,6 +78,24 @@ public class TokenServiceCacheTest {
 
     verify(envoyTokenRepository, times(1))
         .findByToken(token.getToken());
+  }
+
+  @Test
+  public void testDontCacheInvalidTokens() {
+    final String tokenValue = randomAlphanumeric(24);
+
+    when(envoyTokenRepository.findByToken(any()))
+        .thenReturn(Optional.empty());
+
+    final String tenantId = tokenService.validate(tokenValue);
+    assertThat(tenantId).isNull();
+
+    // call again, should NOT be cached
+    final String tenantId2 = tokenService.validate(tokenValue);
+    assertThat(tenantId2).isNull();
+
+    verify(envoyTokenRepository, times(2))
+        .findByToken(tokenValue);
   }
 
   @Test

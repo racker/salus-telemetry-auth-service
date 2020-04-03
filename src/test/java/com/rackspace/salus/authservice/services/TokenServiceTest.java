@@ -49,7 +49,10 @@ import uk.co.jemos.podam.api.PodamFactory;
 import uk.co.jemos.podam.api.PodamFactoryImpl;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = TokenService.class)
+@SpringBootTest(classes = {
+    MeterRegistryConfig.class,
+    TokenService.class
+})
 // Ensure CacheManager is available
 @EnableCaching
 // ...but using no-cop cache
