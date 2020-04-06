@@ -24,15 +24,20 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.rackspace.salus.authservice.config.AuthProperties;
+import com.rackspace.salus.authservice.config.CacheConfig;
+import com.rackspace.salus.authservice.config.CacheProperties;
 import com.rackspace.salus.authservice.web.CertResponse;
 import java.util.Random;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.cache.CacheType;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.autoconfigure.core.AutoConfigureCache;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.vault.core.VaultPkiOperations;
 import org.springframework.vault.core.VaultTemplate;
@@ -43,12 +48,18 @@ import org.springframework.vault.support.VaultCertificateResponse;
 @SpringBootTest(
     properties = {
         // explicitly configure cache to hold more than the one tenant tested and no TTL
-        "salus.auth.cache.max-size=10",
+        "salus.auth.cache.certs.max-size=10",
         "salus.auth.service.pki-role-name=testing-role"
+    },
+    classes = {
+        CacheConfig.class,
+        ClientCertificateService.class
     }
 )
-@ActiveProfiles("test")
+@AutoConfigureCache(cacheProvider = CacheType.JCACHE)
+@EnableConfigurationProperties({AuthProperties.class, CacheProperties.class})
 public class ClientCertificateServiceTest {
+
   @Autowired
   ClientCertificateService clientCertificateService;
 
@@ -74,7 +85,7 @@ public class ClientCertificateServiceTest {
         "-----BEGIN CERTIFICATE-----\ncert\n-----END CERTIFICATE-----",
         "-----BEGIN CERTIFICATE-----\nica\n-----END CERTIFICATE-----",
         "-----BEGIN RSA PRIVATE KEY-----\nkey\n-----END RSA PRIVATE KEY-----"
-        );
+    );
 
     final String tenant = String.format("t-%04d", new Random().nextInt(9999));
 

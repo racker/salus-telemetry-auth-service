@@ -16,28 +16,22 @@
 
 package com.rackspace.salus.authservice.config;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.convert.DurationUnit;
-import org.springframework.stereotype.Component;
+import com.rackspace.salus.telemetry.EnableSalusJpa;
+import java.security.SecureRandom;
+import java.util.Random;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@ConfigurationProperties("salus.auth.cache")
-@Component
-@Data
-public class CacheProperties {
+@EnableSalusJpa
+@Configuration
+public class DatabaseConfig {
 
-  SizeAndTtl certs =
-      new SizeAndTtl();
-
-  SizeAndTtl tokenValidation =
-      new SizeAndTtl().setTtl(Duration.ofSeconds(60));
-
-  @Data
-  public static class SizeAndTtl {
-    int maxSize = 500;
-    @DurationUnit(ChronoUnit.SECONDS)
-    Duration ttl = Duration.ofSeconds(600);
+  /**
+   * A random number generator, typically cryptographically secure,
+   * for token allocation.
+   */
+  @Bean
+  public Random tokenRandom() {
+    return new SecureRandom();
   }
 }

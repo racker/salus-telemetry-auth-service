@@ -17,6 +17,7 @@
 package com.rackspace.salus.authservice.config;
 
 import com.google.common.collect.Iterables;
+import javax.cache.CacheManager;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.ExpiryPolicyBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
@@ -31,6 +32,9 @@ import org.springframework.context.annotation.Configuration;
 @EnableCaching
 public class CacheConfig {
 
+  public static final String CLIENT_CERTS = "clientCerts";
+  public static final String TOKEN_VALIDATION = "tokenValidation";
+
   private final CacheProperties properties;
 
   @Autowired
@@ -43,18 +47,38 @@ public class CacheConfig {
     return cacheManager -> {
 
       // Unit testing causes cache customizer to be invoked more than once, so guard against duplicate cache exception
-      if (!Iterables.contains(cacheManager.getCacheNames(), "clientCerts")) {
+      if (cacheNotPresent(cacheManager, CLIENT_CERTS)) {
         cacheManager.createCache(
-            "clientCerts",
+            CLIENT_CERTS,
             Eh107Configuration.fromEhcacheCacheConfiguration(
                 CacheConfigurationBuilder.newCacheConfigurationBuilder(Object.class, Object.class,
-                    ResourcePoolsBuilder.heap(properties.getMaxSize())
+                    ResourcePoolsBuilder.heap(
+                        properties.getCerts().getMaxSize())
                 )
-                    .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(properties.getTtl()))
+                    .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(
+                        properties.getCerts().getTtl()))
+            )
+        );
+      }
+
+      if (cacheNotPresent(cacheManager, TOKEN_VALIDATION)) {
+        cacheManager.createCache(
+            TOKEN_VALIDATION,
+            Eh107Configuration.fromEhcacheCacheConfiguration(
+                CacheConfigurationBuilder.newCacheConfigurationBuilder(Object.class, Object.class,
+                    ResourcePoolsBuilder.heap(
+                        properties.getTokenValidation().getMaxSize())
+                )
+                    .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(
+                        properties.getTokenValidation().getTtl()))
             )
         );
       }
 
     };
+  }
+
+  private boolean cacheNotPresent(CacheManager cacheManager, String cacheName) {
+    return !Iterables.contains(cacheManager.getCacheNames(), cacheName);
   }
 }
