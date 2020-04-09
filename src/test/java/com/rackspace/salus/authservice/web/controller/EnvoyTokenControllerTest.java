@@ -17,6 +17,7 @@
 package com.rackspace.salus.authservice.web.controller;
 
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
+import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rackspace.salus.authservice.services.TokenService;
 import com.rackspace.salus.telemetry.entities.EnvoyToken;
+import com.rackspace.salus.telemetry.repositories.TenantMetadataRepository;
+import com.rackspace.salus.telemetry.web.TenantVerification;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -61,7 +64,45 @@ public class EnvoyTokenControllerTest {
   @MockBean
   TokenService tokenService;
 
+  @MockBean
+  TenantMetadataRepository tenantMetadataRepository;
+
   private PodamFactory podamFactory = new PodamFactoryImpl();
+
+  @Test
+  public void testTenantVerification_Success() throws Exception {
+    final String tenantId = randomAlphanumeric(10);
+    final UUID tokenId = UUID.randomUUID();
+
+    when(tenantMetadataRepository.existsByTenantId(tenantId))
+        .thenReturn(true);
+
+    mvc.perform(
+        delete("/api/tenant/{tenantId}/envoy-tokens/{id}", tenantId, tokenId)
+        // header must be set to trigger tenant verification
+        .header(TenantVerification.HEADER_TENANT, tenantId))
+        .andExpect(status().isNoContent());
+
+    verify(tenantMetadataRepository).existsByTenantId(tenantId);
+  }
+
+  @Test
+  public void testTenantVerification_Fail() throws Exception {
+    final String tenantId = randomAlphanumeric(10);
+    final UUID tokenId = UUID.randomUUID();
+
+    when(tenantMetadataRepository.existsByTenantId(tenantId))
+        .thenReturn(false);
+
+    mvc.perform(
+        delete("/api/tenant/{tenantId}/envoy-tokens/{id}", tenantId, tokenId)
+        // header must be set to trigger tenant verification
+        .header(TenantVerification.HEADER_TENANT, tenantId))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message", is(TenantVerification.ERROR_MSG)));
+
+    verify(tenantMetadataRepository).existsByTenantId(tenantId);
+  }
 
   @Test
   public void testAllocate() throws Exception {
