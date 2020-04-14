@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.rackspace.salus.authservice.services.ClientCertificateService;
 import com.rackspace.salus.authservice.services.TokenService;
 import com.rackspace.salus.authservice.web.CertResponse;
+import com.rackspace.salus.telemetry.repositories.TenantMetadataRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.Test;
@@ -63,6 +64,9 @@ public class AuthControllerTest {
 
   @MockBean
   TokenService tokenService;
+
+  @MockBean
+  TenantMetadataRepository tenantMetadataRepository;
 
   @Test
   public void getCertSuccessful() throws Exception {
