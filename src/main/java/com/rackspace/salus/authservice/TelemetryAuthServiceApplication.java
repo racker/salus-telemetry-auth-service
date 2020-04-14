@@ -18,10 +18,12 @@ package com.rackspace.salus.authservice;
 
 import com.rackspace.salus.common.config.AutoConfigureSalusAppMetrics;
 import com.rackspace.salus.common.util.DumpConfigProperties;
+import com.rackspace.salus.telemetry.web.EnableTenantVerification;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
+@EnableTenantVerification
 @AutoConfigureSalusAppMetrics
 public class TelemetryAuthServiceApplication {
 
