@@ -120,4 +120,11 @@ public class TokenService {
 
     repository.delete(token);
   }
+
+  public void deleteAllForTenant(String tenantId) {
+    repository.findByTenantId(tenantId, Pageable.unpaged())
+        .forEach(token -> tokenCache.evict(token.getToken()));
+
+    repository.deleteAllByTenantId(tenantId);
+  }
 }

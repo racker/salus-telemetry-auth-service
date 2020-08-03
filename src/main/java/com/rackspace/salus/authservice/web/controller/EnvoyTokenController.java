@@ -97,4 +97,11 @@ public class EnvoyTokenController {
                      @PathVariable UUID id) {
     tokenService.delete(tenantId, id);
   }
+
+  @DeleteMapping("/tenant/{tenantId}/envoy-tokens")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ApiOperation("Delete all envoy tokens for tenant")
+  public void deleteAllForTenant(@PathVariable String tenantId) {
+    tokenService.deleteAllForTenant(tenantId);
+  }
 }
