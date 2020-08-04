@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.rackspace.salus.authservice.web.controller;
@@ -98,7 +99,7 @@ public class EnvoyTokenController {
     tokenService.delete(tenantId, id);
   }
 
-  @DeleteMapping("/tenant/{tenantId}/envoy-tokens")
+  @DeleteMapping("/admin/tenant/{tenantId}/envoy-tokens")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @ApiOperation("Delete all envoy tokens for tenant")
   public void deleteAllForTenant(@PathVariable String tenantId) {
