@@ -17,9 +17,9 @@
 package com.rackspace.salus.authservice.config;
 
 import java.util.List;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -50,6 +50,6 @@ public class AuthProperties {
    * Amount of random bytes used to feed into token encoding. Choosing a size that is a
    * multiple of 3 is ideal since it avoids the inclusion of Base64 padding.
    */
-  @NotNull
+  @Min(3)
   int tokenSize = 18;
 }
