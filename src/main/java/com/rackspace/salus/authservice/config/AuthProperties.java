@@ -17,13 +17,18 @@
 package com.rackspace.salus.authservice.config;
 
 import java.util.List;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties("salus.auth.service")
 @Component
 @Data
+@Validated
 public class AuthProperties {
 
   /**
@@ -32,16 +37,19 @@ public class AuthProperties {
    *
    * COMPUTE_DEFAULT is what is used in tests.
    */
+  @NotEmpty
   List<String> roles = List.of("COMPUTE_DEFAULT");
 
   /**
    * The Vault role name provided during PKI certificate issuing requests.
    */
+  @NotBlank
   String pkiRoleName = "telemetry-infra";
 
   /**
    * Amount of random bytes used to feed into token encoding. Choosing a size that is a
    * multiple of 3 is ideal since it avoids the inclusion of Base64 padding.
    */
+  @Min(3)
   int tokenSize = 18;
 }
