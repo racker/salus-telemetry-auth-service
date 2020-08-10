@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import com.rackspace.salus.telemetry.entities.EnvoyToken;
 import com.rackspace.salus.telemetry.model.NotFoundException;
 import com.rackspace.salus.telemetry.repositories.EnvoyTokenRepository;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,6 +45,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.co.jemos.podam.api.PodamFactory;
 import uk.co.jemos.podam.api.PodamFactoryImpl;
@@ -270,5 +272,25 @@ public class TokenServiceTest {
 
     verify(envoyTokenRepository).findByIdAndTenantId(tokenId, tenantId);
     verify(envoyTokenRepository, never()).delete(any());
+  }
+
+  @Test
+  public void testDeleteAllForTenant() {
+    final String tenantId = randomAlphanumeric(10);
+    final List<EnvoyToken> tokens = IntStream.range(0, 10).mapToObj(value ->
+        podamFactory.manufacturePojo(EnvoyToken.class)
+            .setTenantId(tenantId)
+    )
+        .collect(Collectors.toList());
+
+    when(envoyTokenRepository.findByTenantId(any(), any()))
+        .thenReturn(new PageImpl(tokens));
+
+    tokenService.deleteAllForTenant(tenantId);
+
+    verify(envoyTokenRepository)
+        .findByTenantId(tenantId, Pageable.unpaged());
+
+    verify(envoyTokenRepository).deleteAllByTenantId(tenantId);
   }
 }
