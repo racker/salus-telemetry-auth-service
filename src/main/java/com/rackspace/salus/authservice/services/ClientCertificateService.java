@@ -19,6 +19,11 @@ package com.rackspace.salus.authservice.services;
 import com.rackspace.salus.authservice.config.AuthProperties;
 import com.rackspace.salus.authservice.config.CacheConfig;
 import com.rackspace.salus.authservice.web.CertResponse;
+import com.rackspace.salus.common.config.MetricNames;
+import com.rackspace.salus.common.config.MetricTagValues;
+import com.rackspace.salus.common.config.MetricTags;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -33,11 +38,17 @@ public class ClientCertificateService {
 
   private final VaultTemplate vaultTemplate;
   private final AuthProperties properties;
+  MeterRegistry meterRegistry;
+  private final Counter.Builder clientCertificateSuccessCounter;
 
   @Autowired
-  public ClientCertificateService(VaultTemplate vaultTemplate, AuthProperties properties) {
+  public ClientCertificateService(VaultTemplate vaultTemplate, AuthProperties properties,
+      MeterRegistry meterRegistry) {
     this.vaultTemplate = vaultTemplate;
     this.properties = properties;
+    this.meterRegistry = meterRegistry;
+    this.clientCertificateSuccessCounter = Counter.builder(MetricNames.SERVICE_OPERATION_SUCCEEDED)
+        .tag(MetricTags.SERVICE_METRIC_TAG,"ClientCertificateService");
   }
 
   @Cacheable(CacheConfig.CLIENT_CERTS)
@@ -53,6 +64,9 @@ public class ClientCertificateService {
         formatCert(resp.getData().getIssuingCaCertificate(), "CERTIFICATE"),
         formatCert(resp.getData().getPrivateKey(), "RSA PRIVATE KEY"));
 
+    clientCertificateSuccessCounter
+        .tags(MetricTags.OPERATION_METRIC_TAG,"get",MetricTags.OBJECT_TYPE_METRIC_TAG,"clientCertificate")
+        .register(meterRegistry).increment();
     return rd;
   }
 

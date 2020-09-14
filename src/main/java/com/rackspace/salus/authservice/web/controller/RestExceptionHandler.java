@@ -17,6 +17,7 @@
 package com.rackspace.salus.authservice.web.controller;
 
 import com.rackspace.salus.common.config.MetricNames;
+import com.rackspace.salus.common.config.MetricTags;
 import com.rackspace.salus.common.web.AbstractRestExceptionHandler;
 import com.rackspace.salus.telemetry.model.NotFoundException;
 import io.micrometer.core.instrument.Counter;
@@ -29,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.HandlerMapping;
 
 @ControllerAdvice(basePackages = "com.rackspace.salus.authservice.web")
 @ResponseBody
@@ -47,7 +49,9 @@ public class RestExceptionHandler extends AbstractRestExceptionHandler {
   @ExceptionHandler({NotFoundException.class})
   public ResponseEntity<?> handleNotFound(
       HttpServletRequest request, Exception e) {
-    authServiceErrorCounter.tags("uri",request.getServletPath(),"exception",e.getClass().getSimpleName()).register(meterRegistry).increment();
+    authServiceErrorCounter.tags(
+        MetricTags.URI_METRIC_TAG,request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE).toString(), MetricTags.EXCEPTION_METRIC_TAG,e.getClass().getSimpleName())
+        .register(meterRegistry).increment();
     return respondWith(request, HttpStatus.NOT_FOUND);
   }
 }

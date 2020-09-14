@@ -17,6 +17,9 @@
 package com.rackspace.salus.authservice.services;
 
 import com.rackspace.salus.authservice.config.CacheConfig;
+import com.rackspace.salus.common.config.MetricNames;
+import com.rackspace.salus.common.config.MetricTagValues;
+import com.rackspace.salus.common.config.MetricTags;
 import com.rackspace.salus.telemetry.entities.EnvoyToken;
 import com.rackspace.salus.telemetry.model.NotFoundException;
 import com.rackspace.salus.telemetry.repositories.EnvoyTokenRepository;
@@ -42,8 +45,10 @@ public class TokenService {
   private final EnvoyTokenRepository repository;
   private final TokenGenerator tokenGenerator;
   private final Cache tokenCache;
-  private final Counter validTokenValidations;
-  private final Counter invalidTokenValidations;
+  private final Counter.Builder validTokenValidations;
+  private final Counter.Builder invalidTokenValidations;
+  private final Counter.Builder tokenServiceSuccessCounter;
+  MeterRegistry meterRegistry;
 
   @Autowired
   public TokenService(CacheManager cacheManager, MeterRegistry meterRegistry,
@@ -53,8 +58,11 @@ public class TokenService {
     this.repository = repository;
     this.tokenGenerator = tokenGenerator;
 
-    validTokenValidations = meterRegistry.counter("tokenValidations", "result", "valid");
-    invalidTokenValidations = meterRegistry.counter("tokenValidations", "result", "invalid");
+    this.meterRegistry = meterRegistry;
+    validTokenValidations = Counter.builder("tokenValidations").tags(MetricTags.SERVICE_METRIC_TAG,"TokenService","result", "valid");
+    invalidTokenValidations = Counter.builder("tokenValidations").tags(MetricTags.SERVICE_METRIC_TAG,"TokenService","result", "invalid");
+    this.tokenServiceSuccessCounter = Counter.builder(MetricNames.SERVICE_OPERATION_SUCCEEDED)
+        .tag(MetricTags.SERVICE_METRIC_TAG,"TokenService");
   }
 
   public EnvoyToken allocate(String tenantId, String description) {
@@ -63,7 +71,11 @@ public class TokenService {
         .setTenantId(tenantId)
         .setDescription(description);
 
-    return repository.save(envoyToken);
+    EnvoyToken envoyTokenSaved = repository.save(envoyToken);
+    tokenServiceSuccessCounter
+        .tags(MetricTags.OPERATION_METRIC_TAG, "allocate",MetricTags.OBJECT_TYPE_METRIC_TAG,"envoyToken")
+        .register(meterRegistry).increment();
+    return envoyTokenSaved;
   }
 
   /**
@@ -76,10 +88,10 @@ public class TokenService {
   public String validate(String tokenValue) {
     final Optional<EnvoyToken> token = repository.findByToken(tokenValue);
     if (token.isEmpty()) {
-      invalidTokenValidations.increment();
+      invalidTokenValidations.register(meterRegistry).increment();
       return null;
     }
-    validTokenValidations.increment();
+    validTokenValidations.register(meterRegistry).increment();
 
     token.get().setLastUsed(Instant.now());
     repository.save(token.get());
@@ -106,7 +118,11 @@ public class TokenService {
 
     token.setDescription(description);
 
-    return repository.save(token);
+    EnvoyToken updatedEnvoyToken = repository.save(token);
+    tokenServiceSuccessCounter
+        .tags(MetricTags.OPERATION_METRIC_TAG, MetricTagValues.UPDATE_OPERATION,MetricTags.OBJECT_TYPE_METRIC_TAG,"envoyToken")
+        .register(meterRegistry).increment();
+    return updatedEnvoyToken;
   }
 
   public void delete(String tenantId, UUID tokenId) {
@@ -119,6 +135,9 @@ public class TokenService {
     tokenCache.evict(token.getToken());
 
     repository.delete(token);
+    tokenServiceSuccessCounter
+        .tags(MetricTags.OPERATION_METRIC_TAG, MetricTagValues.REMOVE_OPERATION,MetricTags.OBJECT_TYPE_METRIC_TAG,"envoyToken")
+        .register(meterRegistry).increment();
   }
 
   public void deleteAllForTenant(String tenantId) {
@@ -126,5 +145,8 @@ public class TokenService {
         .forEach(token -> tokenCache.evict(token.getToken()));
 
     repository.deleteAllByTenantId(tenantId);
+    tokenServiceSuccessCounter
+        .tags(MetricTags.OPERATION_METRIC_TAG, "removeAll",MetricTags.OBJECT_TYPE_METRIC_TAG,"envoyToken")
+        .register(meterRegistry).increment();
   }
 }
