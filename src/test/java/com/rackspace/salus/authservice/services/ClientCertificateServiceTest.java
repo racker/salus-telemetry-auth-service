@@ -28,6 +28,7 @@ import com.rackspace.salus.authservice.config.AuthProperties;
 import com.rackspace.salus.authservice.config.CacheConfig;
 import com.rackspace.salus.authservice.config.CacheProperties;
 import com.rackspace.salus.authservice.web.CertResponse;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Random;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +39,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.core.AutoConfigureCache;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.vault.core.VaultPkiOperations;
 import org.springframework.vault.core.VaultTemplate;
@@ -57,6 +59,7 @@ import org.springframework.vault.support.VaultCertificateResponse;
     }
 )
 @AutoConfigureCache(cacheProvider = CacheType.JCACHE)
+@Import({SimpleMeterRegistry.class})
 @EnableConfigurationProperties({AuthProperties.class, CacheProperties.class})
 public class ClientCertificateServiceTest {
 
