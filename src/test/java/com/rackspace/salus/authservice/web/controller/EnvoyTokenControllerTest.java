@@ -33,6 +33,7 @@ import com.rackspace.salus.authservice.services.TokenService;
 import com.rackspace.salus.telemetry.entities.EnvoyToken;
 import com.rackspace.salus.telemetry.repositories.TenantMetadataRepository;
 import com.rackspace.salus.telemetry.web.TenantVerification;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -41,8 +42,6 @@ import java.util.stream.IntStream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -56,7 +55,7 @@ import uk.co.jemos.podam.api.PodamFactoryImpl;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(EnvoyTokenController.class)
-@Import({MetricsAutoConfiguration.class, CompositeMeterRegistryAutoConfiguration.class})
+@Import({SimpleMeterRegistry.class})
 public class EnvoyTokenControllerTest {
 
   @Autowired
