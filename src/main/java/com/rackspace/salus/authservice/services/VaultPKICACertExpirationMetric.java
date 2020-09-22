@@ -67,15 +67,14 @@ public class VaultPKICACertExpirationMetric implements MeterBinder {
                 new ByteArrayInputStream(bytes)
             );
       } catch (CertificateException e) {
-        log.error("error occurred while calculating CACertExpiration "+e.getMessage());
+        log.error("error occurred while calculating CACertExpiration ", e);
       }
       if(myCert != null) {
         diffInSeconds = myCert.getNotAfter().getTime() - System.currentTimeMillis();
       }
     } catch (Exception e) {
-      log.error("error occurred reading certificates from vault "+e.getMessage());
+      log.error("error occurred reading certificates from vault ", e);
     }
-
     return diffInSeconds;
   }
 }
